@@ -194,6 +194,7 @@
   "permGrantDone": "授权完成",
   "permOpenDownload": "安装 Shizuku",
   "taskEditBrowse": "浏览",
+  "explorerJumpToPath": "转到路径",
   "logsTitle": "日志",
   "logsEmpty": "暂无日志",
   "logsFollowOn": "自动滚动",

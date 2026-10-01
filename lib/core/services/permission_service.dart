@@ -10,6 +10,7 @@ class PrivilegedStatus {
   const PrivilegedStatus({
     required this.packageName,
     required this.sui,
+    required this.shizukuInstalled,
     required this.shizukuBinder,
     required this.shizukuGranted,
     required this.dhizukuAvailable,
@@ -22,6 +23,7 @@ class PrivilegedStatus {
 
   final String packageName;
   final bool sui;
+  final bool shizukuInstalled;
   final bool shizukuBinder;
   final bool shizukuGranted;
   final bool dhizukuAvailable;
@@ -34,6 +36,7 @@ class PrivilegedStatus {
   static PrivilegedStatus fromMap(Map<Object?, Object?> map) => PrivilegedStatus(
         packageName: map['packageName'] as String? ?? '',
         sui: map['sui'] as bool? ?? false,
+        shizukuInstalled: map['shizukuInstalled'] as bool? ?? false,
         shizukuBinder: map['shizukuBinder'] as bool? ?? false,
         shizukuGranted: map['shizukuGranted'] as bool? ?? false,
         dhizukuAvailable: map['dhizukuAvailable'] as bool? ?? false,

@@ -250,6 +250,7 @@
   "permGrantDone": "Permissions granted",
   "permOpenDownload": "Install Shizuku",
   "taskEditBrowse": "Browse",
+  "explorerJumpToPath": "Jump to path",
   "logsTitle": "Logs",
   "logsEmpty": "No logs yet",
   "logsFollowOn": "Auto-scroll",

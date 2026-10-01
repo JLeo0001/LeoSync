@@ -516,6 +516,11 @@ class _ExplorerPageState extends State<ExplorerPage> {
               .toList(growable: false),
         ),
         IconButton(
+          tooltip: l10n.explorerJumpToPath,
+          onPressed: _loading ? null : _jumpToPath,
+          icon: const Icon(Icons.route_outlined),
+        ),
+        IconButton(
           tooltip: l10n.commonRefresh,
           onPressed: _loading ? null : _load,
           icon: const Icon(Icons.refresh),
@@ -689,6 +694,50 @@ class _ExplorerPageState extends State<ExplorerPage> {
       maxLines: wrap ? null : 1,
       overflow: wrap ? null : TextOverflow.ellipsis,
     );
+  }
+
+  /// 跳转到任意路径 —— 授予「所有文件访问」后，本地远端可以直接输入
+  /// `/storage/emulated/0/Android/data` 这类受限目录。
+  Future<void> _jumpToPath() async {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final TextEditingController controller = TextEditingController(
+      text: _currentPath == '//${widget.remote.name}'
+          ? '/'
+          : _currentPath,
+    );
+    final String? path = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(l10n.explorerJumpToPath),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: l10n.explorerJumpToPath,
+            hintText: '/storage/emulated/0/Android/data',
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.commonCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            child: Text(l10n.commonOk),
+          ),
+        ],
+      ),
+    );
+    if (path == null) return;
+    final String trimmed = _trimSlashes(path);
+    if (!mounted) return;
+    setState(() {
+      _stack
+        ..clear()
+        ..add(trimmed.isEmpty ? '//${widget.remote.name}' : '/$trimmed');
+    });
+    unawaited(_load());
   }
 
   void _showDetails(FileItem item) {    final AppLocalizations l10n = AppLocalizations.of(context);

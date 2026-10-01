@@ -629,7 +629,9 @@ class _PermissionsSectionState extends State<_PermissionsSection> {
         ? l10n.permGranted
         : status.shizukuBinder
             ? l10n.permNotGranted
-            : l10n.permNotRunning;
+            : status.shizukuInstalled
+                ? l10n.permNotRunning
+                : l10n.permNotInstalled;
     final String dhizukuSubtitle = status.dhizukuGranted
         ? l10n.permGranted
         : status.dhizukuAvailable

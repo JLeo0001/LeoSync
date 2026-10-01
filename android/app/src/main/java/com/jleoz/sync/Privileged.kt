@@ -82,7 +82,23 @@ object Privileged {
     /** 在宿主 Activity 配置好引擎后调用一次。 */
     fun attach(activity: Activity, methodChannel: MethodChannel) {
         channel = methodChannel
+        // Sui（Magisk 模块版 Shizuku）必须在任何 Shizuku 类调用之前初始化。
+        if (!suiChecked) {
+            suiChecked = true
+            try {
+                Sui.init(activity.packageName)
+            } catch (t: Throwable) {
+                // 非 Root 环境忽略。
+            }
+        }
         if (shizukuListenerInstalled.compareAndSet(false, true)) {
+            // 关键一步：sticky 监听会立刻触发 binder 获取（经我们 manifest 里
+            // 的 ShizukuProvider 与 Shizuku 管理器握手），并在 binder 到达 /
+            // 恢复时回调。没有它 pingBinder 永远是 false，状态页会一直显示
+            // 「未运行」，授权也发不出去 —— 别删。
+            Shizuku.addBinderReceivedListenerSticky {
+                emit("shizukuBinder", mapOf("alive" to true))
+            }
             Shizuku.addRequestPermissionResultListener { requestCode, grantResult ->
                 if (requestCode == REQUEST_CODE_SHIZUKU) {
                     emit(
@@ -122,6 +138,12 @@ object Privileged {
             false
         }
 
+        val shizukuInstalled = try {
+            activity.packageManager.getPackageInfo("moe.shizuku.privileged.api", 0)
+            true
+        } catch (t: Throwable) {
+            false
+        }
         val shizukuBinder = try {
             Shizuku.pingBinder()
         } catch (t: Throwable) {
@@ -148,6 +170,7 @@ object Privileged {
         return mapOf(
             "packageName" to activity.packageName,
             "sui" to sui,
+            "shizukuInstalled" to shizukuInstalled,
             "shizukuBinder" to shizukuBinder,
             "shizukuGranted" to shizukuGranted,
             "dhizukuAvailable" to dhizukuAvailable,
