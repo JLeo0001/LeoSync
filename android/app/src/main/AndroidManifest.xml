@@ -153,14 +153,17 @@
         <receiver android:name=".BroadcastReceivers.ServeCancelAction" />
         <receiver android:name=".Services.RcdService$RcdServiceAction" />
 
-        <!-- Shizuku 客户端 Provider：应用 ↔ Shizuku 管理器握手用 -->
+        <!-- Shizuku 客户端 Provider：Shizuku server（adb/root 身份）会在应用
+             进程启动时把 binder 推到这里。android:permission 必须是 shell 持有
+             而普通应用没有的权限（官方 demo 即如此）—— 之前错写成管理器的
+             签名权限，server 无权调用，binder 永远收不到，状态页恒「未运行」。 -->
         <provider
             android:name="rikka.shizuku.ShizukuProvider"
             android:authorities="${applicationId}.shizuku"
             android:multiprocess="false"
             android:enabled="true"
             android:exported="true"
-            android:permission="moe.shizuku.manager.permission.API_V23" />
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
         <receiver
             android:name=".BroadcastReceivers.BootReciever"
             android:exported="true">
