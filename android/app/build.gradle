@@ -1,0 +1,246 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'dev.flutter.flutter-gradle-plugin'
+}
+
+// ===== 签名配置 =====
+// 从仓库根目录的 key.properties 读取签名信息（含密码），文件缺失时回退到 debug 签名。
+def keystorePropertiesFile = rootProject.file("key.properties")
+def hasKeystore = keystorePropertiesFile.exists()
+def keystoreProperties = new Properties()
+if (hasKeystore) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    signingConfigs {
+        release {
+            if (hasKeystore) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
+    ndkVersion project.properties['com.jleoz.sync.ndkVersion']
+    defaultConfig {
+        generatedDensities = []
+        vectorDrawables.generatedDensities = []
+        applicationId 'com.jleoz.sync'
+        minSdkVersion 23
+        compileSdk 34
+        targetSdkVersion 34
+        versionCode 1 // 发行基线；arm64-v8a 变体在此基础上 +7（见下方 versionCodes）
+        versionName '1.0.0'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "java.lang.String", "CLI", System.getenv('RCX_BUILD_CLI') ? System.getenv('RCX_BUILD_CLI') : "\"c03129b6-b09f-9cb4-8fcd-7f143b8f94ef\""
+        buildConfigField "java.lang.String", "VCP_AUTHORITY", "\"" + applicationId + ".vcp\"";
+        setProperty("archivesBaseName",  "leosync_v"+versionName)
+
+        externalNativeBuild {
+            ndkBuild {
+                arguments "LOCAL_LDFLAGS += -Wl,--build-id=none"
+            }
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+            shrinkResources false
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/ic_launcher_debug",
+                    appIconRound: "@mipmap/ic_launcher_debug_round"
+            ]
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/ic_launcher",
+                    appIconRound: "@mipmap/ic_launcher_round"
+            ]
+            signingConfig hasKeystore ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    sourceSets {
+        configureEach {
+            jniLibs.srcDirs = ["lib"]
+        }
+    }
+
+    flavorDimensions += 'edition'
+    productFlavors {
+        // Default GitHub and Google Play build
+        rs {
+            dimension 'edition'
+        }
+        // OSS build
+        oss {
+            dimension 'edition'
+        }
+    }
+
+    // 发行目标只有 arm64-v8a 一种（覆盖 2017 年以后的全部主流设备）。
+    // 同时把 ABI 拆分收敛到单一目标，构建时间和产物体积都随之下降。
+    splits {
+        abi {
+            enable true
+            reset()
+            include 'arm64-v8a'
+            universalApk false
+        }
+    }
+
+    project.ext.versionCodes = [
+        'armeabi-v7a': 6,
+        'arm64-v8a'  : 7,
+        'x86'        : 8,
+        'x86_64'     : 9
+    ]
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            output.versionCodeOverride =
+                    project.ext.versionCodes.get(output.getFilter(com.android.build.OutputFile.ABI), 0) + android.defaultConfig.versionCode
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        // flutter_local_notifications 使用 java.time，需要 core library desugaring
+        // 才能在低版本 Android 上运行。缺失时 AGP 会在
+        // :app:checkOssReleaseAarMetadata 阶段直接报错。
+        coreLibraryDesugaringEnabled true
+    }
+    // Kotlin 2.x 起 kotlinOptions 已废弃，改用 compilerOptions。
+    // 注意这里必须写全限定名，否则 Groovy DSL 解析不到 JvmTarget。
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+    packagingOptions {
+        jniLibs {
+            keepDebugSymbols += ['**/*.so']
+            useLegacyPackaging true
+        }
+    }
+
+    // Required for language picker
+    androidResources {
+        generateLocaleConfig true
+    }
+
+    buildTypes {
+        getByName("debug") {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-DEBUG"
+            buildConfigField "java.lang.String", "VCP_AUTHORITY", "\"" + defaultConfig.applicationId + ".debug.vcp\"";
+            resValue("string", "app_name", "LeoSync Debug")
+            resValue("string", "app_short_name", "LeoSync Debug")
+        }
+    }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        abortOnError = true
+        warning 'MissingTranslation'
+
+    }
+
+    // 只交叉编译发行所需的 ABI。`:engine:buildAll` 仍然保留，
+    // 需要其它架构时手动执行即可。
+    gradle.projectsEvaluated {
+        preBuild.dependsOn(':engine:buildArm64')
+    }
+
+    namespace 'com.jleoz.sync'
+
+    // https://android.izzysoft.de/articles/named/iod-scan-apkchecks#blobs
+    dependenciesInfo {
+        // Disables dependency metadata when building APKs.
+        includeInApk = false
+        // Disables dependency metadata when building Android App Bundles.
+        includeInBundle = false
+    }
+}
+
+repositories {
+    mavenCentral()
+    google()
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.vectordrawable:vectordrawable:1.1.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.browser:browser:1.8.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation 'com.leinardi.android:speed-dial:3.3.0'
+    implementation 'org.markdownj:markdownj-core:0.4'
+    implementation 'jp.wasabeef:recyclerview-animators:4.0.2'
+    implementation 'com.github.GrenderG:Toasty:1.5.2'
+
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.preference:preference-ktx:1.2.1'
+    implementation 'androidx.datastore:datastore-preferences:1.1.0'
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+
+
+    // Thumbnails
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+    implementation 'androidx.preference:preference:1.2.1'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'
+    // REST Client
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    debugImplementation 'com.squareup.okhttp3:logging-interceptor:4.9.1'
+    // JSON
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.14.1'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.14.1'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
+    // Timestmps
+    implementation 'com.github.x0b:rfc3339parser:2.0.0'
+    // SAF/WebDAV
+    implementation project(':safdav')
+    implementation 'org.nanohttpd:nanohttpd:2.3.1'
+
+    // Java 8+ library support
+    // TODO: replace with coreLibraryDesugar once available
+    // core library desugaring 的运行库（与上面的 coreLibraryDesugaringEnabled 配套）
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+
+    implementation 'net.sourceforge.streamsupport:android-retrostreams:1.7.4'
+    implementation 'net.sourceforge.streamsupport:android-retrofuture:1.7.4'
+    // App intro
+    implementation 'com.github.AppIntro:AppIntro:6.3.1'
+    // TEST
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test:runner:1.5.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    // Splash screen
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
+    //Updates
+    implementation 'com.github.Sharkaboi:AppUpdateChecker:v1.0.5'
+}
+
+// Flutter 源码根目录（本文件位于 <repo>/android/app/）
+flutter {
+    source = '../..'
+}

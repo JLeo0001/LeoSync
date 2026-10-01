@@ -1,0 +1,29 @@
+// Flutter 工程的根构建脚本。
+// 插件版本统一在 settings.gradle 的 pluginManagement/plugins 中声明。
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+rootProject.buildDir = '../build'
+
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
+// 让 Flutter 插件模块在 :app 之后求值。
+// `:engine` 是纯 Groovy 模块（无 Android 插件），排除以免与其
+// `projectsEvaluated { preBuild.dependsOn }` 钩子形成环。
+subprojects {
+    if (project.name != 'engine') {
+        project.evaluationDependsOn(':app')
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.buildDir
+}

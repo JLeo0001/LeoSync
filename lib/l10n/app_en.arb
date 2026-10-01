@@ -1,0 +1,434 @@
+{
+  "@@locale": "en",
+  "appTitle": "LeoSync",
+  "tabRemotes": "Remotes",
+  "tabTasks": "Tasks",
+  "tabSettings": "Settings",
+  "commonOk": "OK",
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonRefresh": "Refresh",
+  "commonRetry": "Retry",
+  "commonRename": "Rename",
+  "commonAdd": "Add",
+  "commonMore": "More",
+  "commonUnknown": "Unknown",
+  "commonNotDetected": "Not detected",
+  "commonCopied": "Copied to clipboard",
+  "remotesTitle": "Remotes",
+  "remotesAdd": "Add remote",
+  "remotesEmpty": "No remotes configured yet",
+  "remotesEmptyHint": "Tap “Add remote” to set up a cloud storage.",
+  "remotesLoadFailed": "Failed to load remotes",
+  "remotesEngineMissing": "Sync engine unavailable",
+  "remotesEngineMissingHint": "Expected engine location:\n{path}\n\nRebuild the app to restore the bundled engine.",
+  "@remotesEngineMissingHint": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "remotesPin": "Pin",
+  "remotesUnpin": "Unpin",
+  "remotesEditConfig": "Edit configuration",
+  "remotesRenameTitle": "Rename (display only)",
+  "remotesRenameLabel": "Display name",
+  "remotesRenameHint": "Leave empty to restore the original name",
+  "remotesDeleteTitle": "Delete “{name}”?",
+  "@remotesDeleteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remotesDeleteBody": "It will be removed from the configuration. Files in the cloud are not affected.",
+  "selectionCount": "{count} selected",
+  "@selectionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectAll": "Select all",
+  "explorerEmpty": "This folder is empty",
+  "explorerDownload": "Download",
+  "explorerMove": "Move",
+  "explorerShare": "Share",
+  "explorerNewFolder": "New folder",
+  "explorerUpload": "Upload files",
+  "explorerSize": "Size",
+  "explorerModified": "Modified",
+  "explorerType": "Type",
+  "explorerNewName": "New name",
+  "explorerFolderShareUnsupported": "Folders cannot be shared",
+  "explorerDownloadingForShare": "Downloading to share…",
+  "explorerMoveFailed": "{count} item(s) failed to move",
+  "@explorerMoveFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "explorerDeleteTitle": "Delete {count} item(s)?",
+  "@explorerDeleteTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "explorerDeleteBody": "This cannot be undone. The remote content will be removed.",
+  "pickerTitle": "Choose destination",
+  "pickerConfirm": "Select",
+  "pickerUp": "Up",
+  "pickerNoSubfolders": "No subfolders here",
+  "pickerChooseRemote": "Remote",
+  "transferUploading": "Uploading",
+  "transferDownloading": "Downloading",
+  "transferCancelled": "Cancelled",
+  "transferCancel": "Cancel",
+  "transferFailedCount": "{count} failed",
+  "@transferFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tasksTitle": "Sync tasks",
+  "tasksNew": "New task",
+  "tasksEmpty": "No sync tasks yet",
+  "tasksEmptyHint": "A sync task keeps a local folder and a remote folder in sync. Mirror one way, only add, or apply filters.",
+  "tasksUntitled": "Untitled task",
+  "tasksSyncNow": "Sync now",
+  "tasksEdit": "Edit",
+  "tasksWifiOnlyOn": "Sync on Wi-Fi only",
+  "tasksWifiOnlyOff": "Disable Wi-Fi-only",
+  "tasksLastSync": "Last sync: {time}",
+  "@tasksLastSync": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksDeleteTitle": "Delete task “{name}”?",
+  "@tasksDeleteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tasksDeleteBody": "Only the task definition is removed. No files are touched.",
+  "tasksTriggers": "Triggers",
+  "taskEditTitleNew": "New task",
+  "taskEditTitleEdit": "Edit task",
+  "taskEditName": "Task name",
+  "taskEditRemote": "Remote",
+  "taskEditRemotePath": "Remote folder",
+  "taskEditRemotePathHint": "Leave empty for the remote root",
+  "taskEditLocalPath": "Local folder",
+  "taskEditDirection": "Direction",
+  "taskEditMd5": "Verify with MD5",
+  "taskEditMd5Hint": "Uses the --checksum flag. More accurate but slower.",
+  "taskEditWifiOnly": "Auto-sync on Wi-Fi only",
+  "taskEditFilters": "Filter rules",
+  "taskEditFiltersNone": "Not used",
+  "taskEditFiltersDeleted": "Deleted",
+  "taskEditDeleteExcluded": "Delete excluded files",
+  "taskEditDeleteExcludedHint": "--delete-excluded",
+  "taskEditBindFilter": "Bound filter",
+  "taskEditCreate": "Create task",
+  "taskEditSave": "Save changes",
+  "taskEditErrorName": "Please enter a task name",
+  "taskEditErrorRemote": "Please choose a remote",
+  "taskEditErrorLocalPath": "Please enter a local folder",
+  "triggersTitle": "Triggers",
+  "triggersNew": "New trigger",
+  "triggersEdit": "Edit trigger",
+  "triggersEmpty": "No triggers yet",
+  "triggersUntitled": "Untitled trigger",
+  "triggersTarget": "Task to run",
+  "triggersTime": "Time",
+  "triggersDays": "Days",
+  "triggersInterval": "Interval",
+  "triggersSystemLimits": "Android may delay background work; the effective interval is never shorter than 15 minutes.",
+  "triggersTaskMissing": "(task deleted)",
+  "filtersTitle": "Filter rules",
+  "filtersHint": "Filters match in order; the first hit wins. Exclude *.tmp first, then include *, to sync everything except temporary files.",
+  "filtersNew": "New filter",
+  "filtersEdit": "Edit filter",
+  "filtersName": "Name",
+  "filtersRules": "Rules (evaluated in order)",
+  "filtersEmpty": "No rules yet",
+  "filtersEmptyList": "No filters yet",
+  "filtersInclude": "Include",
+  "filtersExclude": "Exclude",
+  "filtersAddRule": "Add rule",
+  "filtersPattern": "Pattern",
+  "filtersTemplates": "Templates",
+  "filtersToggle": "Toggle include/exclude",
+  "settingsTitle": "Settings",
+  "settingsEngine": "Sync engine",
+  "settingsBinary": "Executable",
+  "settingsVersion": "Version",
+  "settingsConfig": "Configuration",
+  "settingsAppearance": "Appearance",
+  "settingsTheme": "Theme",
+  "settingsThemeSystem": "Follow system",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "Follow system",
+  "settingsLogging": "Logging",
+  "settingsLoggingTitle": "Verbose logging",
+  "settingsLoggingHint": "Adds verbose output to every sync operation",
+  "settingsLogs": "View logs",
+  "settingsOther": "Other",
+  "settingsAbout": "About",
+  "settingsAboutHint": "Version, updates, open-source licences",
+  "settingsGeneral": "General",
+  "settingsThumbnails": "Thumbnails",
+  "settingsShowThumbnails": "Show thumbnails",
+  "settingsShowThumbnailsHint": "Preview image files in the browser",
+  "settingsThumbnailSizeLimit": "Thumbnail size limit",
+  "settingsThumbnailSizeLimitHint": "Files larger than this are not previewed",
+  "settingsBackgroundWork": "Background work",
+  "settingsAllowWhileIdle": "Allow tasks while device is idle",
+  "settingsAllowWhileIdleHint": "May use more battery; disabling can delay tasks",
+  "settingsWifiOnly": "Transfer files only over Wi-Fi",
+  "settingsWifiOnlyHint": "Require Wi-Fi connection for file transfers",
+  "settingsWrapFilenames": "Wrap filenames",
+  "settingsWrapFilenamesHint": "Long names are truncated in the middle when disabled",
+  "settingsNetwork": "Network",
+  "settingsUseProxy": "Use proxy",
+  "settingsUseProxyHint": "Use proxy for all supported transfers (HTTP, HTTPS)",
+  "settingsProxyProtocol": "Protocol",
+  "settingsProxyHost": "Host",
+  "settingsProxyPort": "Port",
+  "settingsProxyUsername": "Username",
+  "settingsProxyPassword": "Password",
+  "settingsNotifications": "Notifications",
+  "settingsUpdateNotifications": "App update notifications",
+  "settingsUpdateNotificationsHint": "Get notified about app updates",
+  "settingsNotificationReports": "Unified sync reports",
+  "settingsNotificationReportsHint": "Combine sync results into one notification",
+  "settingsFileAccess": "File access",
+  "settingsEnableSaf": "SAF client (preview)",
+  "settingsEnableSafHint": "EXPERIMENTAL: access SD cards and external storage",
+  "settingsEnableVcp": "Content provider (preview)",
+  "settingsEnableVcpHint": "EXPERIMENTAL: expose remotes to other apps",
+  "settingsVcpDeclareLocal": "Declare as local provider",
+  "settingsVcpDeclareLocalHint": "Some apps can then open the files",
+  "settingsVcpGrantAll": "Allow all apps to access remotes",
+  "settingsVcpGrantAllHint": "WARNING: any app could access your data",
+  "settingsRefreshLocalAliases": "Refresh local drives",
+  "settingsRefreshLocalAliasesHint": "Automatically update local storage at startup",
+  "settingsExperimentalNote": "These preview features are provided for completeness and may not take effect in this build.",
+  "logsTitle": "Logs",
+  "logsEmpty": "No logs yet",
+  "logsFollowOn": "Auto-scroll",
+  "logsFollowOff": "Pause auto-scroll",
+  "logsCopyAll": "Copy all",
+  "logsClear": "Clear",
+  "logsClearTitle": "Clear logs?",
+  "logsClearBody": "Both the in-memory buffer and the log file will be cleared.",
+  "logsWrittenTo": "Logging to: {path}",
+  "@logsWrittenTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "logsDisabled": "File logging is off (Settings → Verbose logging)",
+  "aboutTitle": "About",
+  "aboutTagline": "Cloud file manager and sync tool for Android",
+  "aboutAppVersion": "App version",
+  "aboutEngineVersion": "Engine version",
+  "aboutConfigPath": "Config path",
+  "aboutCheckUpdate": "Check for updates",
+  "aboutCheckHint": "Fetches the latest release from GitHub",
+  "aboutUpdateAvailable": "New version {version} available",
+  "@aboutUpdateAvailable": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutUpToDate": "You are on the latest version",
+  "aboutCheckFailed": "Update check failed",
+  "aboutOpenFailed": "Could not open the link",
+  "aboutNetworkError": "Cannot reach GitHub, please try again later",
+  "aboutDownload": "Download",
+  "aboutSource": "Source code",
+  "aboutIssues": "Report an issue",
+  "aboutLicence": "Open-source licences",
+  "aboutCredits": "Thanks to Felix Nüsse and other contributors. Licensed under GPL-3.0-or-later. Third-party components ship with their own licence notices — see open-source licences.",
+  "remoteConfigPickTitle": "Choose a type",
+  "remoteConfigConfigure": "Configure {type}",
+  "@remoteConfigConfigure": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "remoteConfigEdit": "Edit {name}",
+  "@remoteConfigEdit": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "remoteConfigSearch": "Search backends (s3 / drive / webdav…)",
+  "remoteConfigNoProviders": "Could not load the backend list",
+  "remoteConfigNeedsBrowser": "Browser sign-in required",
+  "remoteConfigNeedsBrowserHint": "The next step opens your browser to sign in to {type}. You will return here automatically.",
+  "@remoteConfigNeedsBrowserHint": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "remoteConfigName": "Name",
+  "remoteConfigNameHint": "Used in commands and paths, e.g. mydrive:",
+  "remoteConfigNameLocked": "The name cannot be changed while editing",
+  "remoteConfigNameInvalid": "Only letters, digits, underscore, dot and dash are allowed",
+  "remoteConfigNoRequired": "This backend has no required fields — just create it.",
+  "remoteConfigShowRequired": "Required only",
+  "remoteConfigShowAll": "Show all options",
+  "remoteConfigSubmitting": "Submitting…",
+  "remoteConfigAuthorize": "Authorize and create",
+  "remoteConfigCreate": "Create",
+  "remoteConfigSaving": "Save",
+  "remoteConfigCreateFailed": "Creation failed",
+  "remoteConfigAuthTitle": "Waiting for authorization",
+  "remoteConfigAuthHint": "Finish signing in in your browser",
+  "remoteConfigAuthBody": "After authorizing in the browser, switch back to LeoSync manually — this page continues on its own.\nWhile waiting, don't swipe the app away from Recents.",
+  "remoteConfigAuthIncomplete": "Authorization was not completed, please try again",
+  "remoteConfigAuthFailedHint": "Common cause: the system froze LeoSync while the browser was in the foreground. Disable battery optimization for LeoSync and try again.",
+  "shareReceived": "Received {count} file(s) from another app",
+  "@shareReceived": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shortcutRemotes": "Remotes",
+  "shortcutNewTask": "New task",
+  "syncStatusRunning": "Running",
+  "syncStatusSucceeded": "Completed",
+  "syncStatusFailed": "Failed",
+  "syncWifiSkipped": "Skipped: not on an unmetered network (Wi-Fi only)",
+  "syncErrorNoRemote": "Remote “{name}” not found — please reconfigure it",
+  "@syncErrorNoRemote": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "syncErrorUnsupported": "This sync direction is not supported",
+  "syncErrorFailed": "Sync failed",
+  "syncTransferFailed": "Transfer failed",
+  "commonSort": "Sort",
+  "@commonSort": {},
+  "commonRenameFailed": "Rename failed",
+  "@commonRenameFailed": {},
+  "explorerCopyTo": "Copy to",
+  "@explorerCopyTo": {},
+  "explorerCopiedTo": "Copied to {target}",
+  "@explorerCopiedTo": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "transferCopying": "Copying",
+  "@transferCopying": {},
+  "remoteConfigOpenBrowserFailed": "Could not open the browser, please visit: {url}",
+  "@remoteConfigOpenBrowserFailed": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "remoteConfigAuthCancelled": "Authorization cancelled",
+  "@remoteConfigAuthCancelled": {
+    "placeholders": {}
+  },
+  "filtersUntitled": "Untitled",
+  "@filtersUntitled": {
+    "placeholders": {}
+  },
+  "filtersCount": "{title} ({count} rules)",
+  "@filtersCount": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filtersEmptyEntries": "(empty)",
+  "@filtersEmptyEntries": {
+    "placeholders": {}
+  },
+  "triggersErrorTarget": "Please choose a task to trigger",
+  "@triggersErrorTarget": {
+    "placeholders": {}
+  },
+  "intervalMinutes": "{count} min",
+  "@intervalMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "intervalHours": "{count} h",
+  "@intervalHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "shareNoRemotes": "No remotes configured — cannot receive the share",
+  "@shareNoRemotes": {
+    "placeholders": {}
+  },
+  "shareUploadTo": "Upload to…",
+  "@shareUploadTo": {
+    "placeholders": {}
+  },
+  "shareUploaded": "Uploaded {done}/{total} file(s) to {remote}",
+  "@shareUploaded": {
+    "placeholders": {
+      "done": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "remote": {
+        "type": "String"
+      }
+    }
+  }
+}

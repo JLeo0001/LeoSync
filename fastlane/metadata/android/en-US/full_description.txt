@@ -1,0 +1,15 @@
+LeoSync keeps your local storage and dozens of cloud providers in one place: browse, upload, download, move, copy and delete — plus scheduled sync tasks that keep a local folder and a remote folder in step.
+
+<b>Remote management:</b> dozens of cloud storage types (object storage, cloud drives, WebDAV, SFTP, FTP and more), with browser sign-in for providers like Google Drive, Dropbox, OneDrive, Box, pCloud and Yandex. Rename, pin, edit or remove remotes at any time.
+
+<b>File management:</b> list, upload, download, move, copy, rename and delete files and folders. Six sort orders, multi-select for batch operations, thumbnails for images, and transfer progress with speed and time remaining.
+
+<b>Synchronisation:</b> four directions — mirror local to remote, mirror remote to local, or one-way copy in either direction. Use include/exclude filter rules, MD5 verification, an option to delete excluded files, and a Wi-Fi-only restriction.
+
+<b>Automation:</b> run sync tasks on a schedule (specific weekdays and time) or at a fixed interval. Background work is managed by the system and survives reboots; progress, success and failure are reported through notifications.
+
+<b>Storage Access Framework:</b> access SD cards and USB devices, and expose cloud storage to other apps on your device.
+
+<b>Material You:</b> automatic light and dark themes that follow your system colours.
+
+<b>Privacy:</b> no accounts, no analytics, no telemetry. Your credentials stay on your device.

@@ -1,0 +1,57 @@
+name: leosync
+description: "LeoSync — Android 云文件管理器与同步工具"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.6.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # 路径 / 本地存储
+  path_provider: ^2.1.5
+  path: ^1.9.0
+  shared_preferences: ^2.3.3
+  sqflite: ^2.3.3+1
+
+  # 状态管理
+  provider: ^6.1.2
+
+  # 平台能力
+  url_launcher: ^6.3.1
+  package_info_plus: ^8.1.2
+  dynamic_color: 1.7.0
+  file_picker: ^8.1.7
+
+  # 后台调度（对应原生 workmanager/ 模块）
+  workmanager: ^0.6.0
+
+  # 网络状态判定（对应原生 util/WifiConnectivitiyUtil.kt）
+  connectivity_plus: ^6.0.5
+
+  # 通知（对应原生 notifications/ 模块）
+  flutter_local_notifications: ^17.2.4
+
+  # 分享（对应原生「打开方式 / 分享」）
+  share_plus: ^10.1.4
+
+  # 应用快捷方式（对应原生 AppShortcutsHelper + shortcuts.xml）
+  quick_actions: ^1.0.8
+
+  # 国际化
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  # 由 l10n.yaml + lib/l10n/*.arb 生成 AppLocalizations
+  generate: true

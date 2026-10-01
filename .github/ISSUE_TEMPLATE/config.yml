@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Engine Forum
+    about: For questions around engine itself.
+  - name: Engine Issue Tracker
+    about: When you are sure engine does not work correctly.

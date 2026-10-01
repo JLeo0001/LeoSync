@@ -1,0 +1,197 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+# 只上传构建产物（artifact），不创建 GitHub Release，因此无需写权限。
+permissions:
+  contents: read
+
+# 同一时刻只跑一个发行构建，避免多个 tag 同时抢占 runner。
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.27.4'
+
+jobs:
+  build:
+    name: 构建发行版 APK
+    runs-on: ubuntu-latest
+    # engine 交叉编译约 10 分钟，加上 Flutter 首次构建，给足但别无限等。
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── 工具链：版本全部从 android/gradle.properties 单点读取 ──────────
+      - name: Read toolchain versions
+        id: versions
+        run: |
+          props=android/gradle.properties
+          {
+            echo "go=$(grep -E '^com\.jleoz\.sync\.goVersion=' "$props" | cut -d'=' -f2)"
+            echo "ndk=$(grep -E '^com\.jleoz\.sync\.ndkVersion=' "$props" | cut -d'=' -f2)"
+            echo "engine=$(grep -E '^com\.jleoz\.sync\.engineVersion=' "$props" | cut -d'=' -f2)"
+          } >> "$GITHUB_OUTPUT"
+          echo "engine 将编译为 v${{ steps.versions.outputs.engine }}"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '${{ steps.versions.outputs.go }}'
+
+      # ubuntu-latest runner 镜像已预装 Android SDK 并设好 ANDROID_SDK_ROOT /
+      # ANDROID_HOME。`android-actions/setup-android` 会自己再下载一遍
+      # cmdline-tools，反而成了最不稳定的一环（实测它自身报错导致整个 job 失败）。
+      - name: Locate Android SDK
+        run: |
+          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          if [ ! -d "$SDK" ]; then
+            echo "::error::runner 上没有找到 Android SDK"
+            exit 1
+          fi
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          echo "使用预装的 SDK: $SDK"
+          ls "$SDK"
+
+      - name: Install NDK
+        run: |
+          set -e
+          SDK="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          NDK_DIR="$SDK/ndk/${{ steps.versions.outputs.ndk }}"
+          if [ -d "$NDK_DIR" ]; then
+            echo "NDK ${{ steps.versions.outputs.ndk }} 已预装，跳过"
+          else
+            SDKMGR="$SDK/cmdline-tools/latest/bin/sdkmanager"
+            [ -x "$SDKMGR" ] || SDKMGR="$(find "$SDK" -name sdkmanager -type f | head -1)"
+            yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
+            "$SDKMGR" "ndk;${{ steps.versions.outputs.ndk }}"
+          fi
+          echo "ANDROID_NDK_HOME=$NDK_DIR" >> "$GITHUB_ENV"
+
+      - name: Write android/local.properties
+        run: |
+          {
+            echo "flutter.sdk=$FLUTTER_ROOT"
+            echo "sdk.dir=$ANDROID_SDK_ROOT"
+          } > android/local.properties
+
+      # ── 签名 ──────────────────────────────────────────────────────────
+      # 需要仓库 Secrets：SIGNING_KEYSTORE_BASE64 / SIGNING_STORE_PASSWORD
+      #                  SIGNING_KEY_ALIAS / SIGNING_KEY_PASSWORD
+      # 缺任何一个都直接失败 —— 不允许再出现 debug 签名的发行包
+      # （覆盖安装会因签名不一致被系统拒绝）。
+      - name: Prepare signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$STORE_PASSWORD" ] \
+             || [ -z "$KEY_ALIAS" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "::error::仓库 Secrets 缺少签名信息（SIGNING_KEYSTORE_BASE64 / SIGNING_STORE_PASSWORD / SIGNING_KEY_ALIAS / SIGNING_KEY_PASSWORD）。拒绝出 debug 签名的发行包。"
+            exit 1
+          fi
+          mkdir -p android/.config/android
+          printf '%s' "$KEYSTORE_BASE64" | base64 -d > android/.config/android/leosync.keystore
+          {
+            echo "storePassword=$STORE_PASSWORD"
+            echo "keyPassword=$KEY_PASSWORD"
+            echo "keyAlias=$KEY_ALIAS"
+            echo "storeFile=.config/android/leosync.keystore"
+          } > android/key.properties
+          echo "✅ 使用仓库 Secrets 中的密钥签名"
+
+      # ── 构建 ──────────────────────────────────────────────────────────
+      # 这一步会通过 app/build.gradle 的 preBuild 钩子触发 `:engine:buildAll`，
+      # 交叉编译出各 ABI 的 engine.so（约 10 分钟）。
+      - name: Flutter pub get
+        run: flutter pub get
+
+      # 构建失败时把关键错误行输出成 GitHub annotation —— 这样即使不下载
+      # 日志（体积大、移动端不便），在 Actions 页面顶部也能直接看到原因。
+      - name: Build release APK (arm64-v8a)
+        id: build
+        continue-on-error: true
+        run: |
+          set +e
+          # 直接调 Gradle 而不是 `flutter build apk`：后者会过滤 Gradle 输出，
+          # Kotlin 编译器的 `e: file:...:line Unresolved reference: ...` 会被吞掉，
+          # 只剩一句 “Compilation error. See log for more details”，无法定位。
+          # Flutter 的 Gradle 插件会自行处理 Dart 侧的编译。
+          cd android
+          ./gradlew :app:assembleOssRelease --console=plain 2>&1 | tee ../build.log
+          code=${PIPESTATUS[0]}
+          echo "exit=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Report build failure
+        if: steps.build.outputs.exit != '0'
+        run: |
+          echo "::error::构建失败（exit ${{ steps.build.outputs.exit }}），关键行如下"
+          # Kotlin 编译器的报错前缀是 `e:`（不是 `error:`），必须单独匹配，
+          # 否则只能看到 Gradle 层的 "Compilation error. See log for more details"。
+          grep -nE "FAILURE:|What went wrong|^e: |error:|Error:|Caused by:|Execution failed|Compilation error|Unresolved reference|Type mismatch|None of the following|Cannot access|Could not|No such|incompatible" build.log \
+            | tail -40 | while IFS= read -r l; do
+              echo "::error title=build::$l"
+            done
+          echo "=============== build.log 末尾 120 行 ==============="
+          tail -120 build.log
+          exit 1
+
+      # Flutter 除了原始的 apk/<flavor>/<type>/ 之外，还会往
+      # apk/../flutter-apk/ 另拷一份。这里统一按文件名收集到 dist/，
+      # 不受构建工具内部目录调整的影响。
+      - name: Collect & verify APK
+        run: |
+          set -e
+          mkdir -p dist
+          find build -name '*-oss-*-release.apk' -exec cp -v {} dist/ \;
+          echo "── dist/ ──"
+          ls -lh dist/
+
+          # 唯一发行目标，缺失即失败。
+          test -n "$(find dist -name '*arm64-v8a*.apk' -print -quit)" \
+            && echo "✅ arm64-v8a 已生成"
+
+      - name: Upload APK (arm64-v8a)
+        uses: actions/upload-artifact@v4
+        with:
+          name: leosync-arm64-v8a
+          path: dist/*-oss-arm64-v8a-release.apk
+          if-no-files-found: error
+
+      # ── 产物 ──────────────────────────────────────────────────────────
+      # 只上传为 workflow artifact，**不再自动创建 GitHub Release** ——
+      # 需要发布时由维护者手动下载 APK 后自行处理。
+      - name: Summary
+        run: |
+          {
+            echo "### LeoSync 构建结果"
+            echo ""
+            echo "| 项 | 值 |"
+            echo "|---|---|"
+            echo "| 签名 | 仓库密钥（缺 Secrets 时构建直接失败） |"
+            echo "| engine | v${{ steps.versions.outputs.engine }} |"
+            echo "| NDK | ${{ steps.versions.outputs.ndk }} |"
+            echo "| Go | ${{ steps.versions.outputs.go }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
