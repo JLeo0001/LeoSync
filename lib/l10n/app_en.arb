@@ -85,6 +85,35 @@
   "explorerDeleteBody": "This cannot be undone. The remote content will be removed.",
   "pickerTitle": "Choose destination",
   "pickerConfirm": "Select",
+  "filePickerSelectFolder": "Select folder",
+  "filePickerSelectFiles": "Select files",
+  "filePickerUseThisFolder": "Use this folder",
+  "filePickerSelectedCount": "{count} selected",
+  "@filePickerSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filePickerShowHidden": "Show hidden files",
+  "filePickerFilter": "Filter",
+  "filePickerNotDirectory": "That path is not a directory",
+  "filePickerOperationFailed": "Operation failed",
+  "filePickerDeleteBody": "This cannot be undone: {name}",
+  "@filePickerDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "filePickerNoPermission": "No permission to access this directory",
+  "filePickerNoPermissionHint": "Grant all-files access, then retry.",
+  "filePickerOpenSettings": "Grant access",
+  "filePickerInternalStorage": "Internal storage",
+  "filePickerDownloads": "Download",
+  "filePickerAppDir": "App directory",
   "pickerUp": "Up",
   "pickerNoSubfolders": "No subfolders here",
   "pickerChooseRemote": "Remote",

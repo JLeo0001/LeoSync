@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +10,7 @@ import '../../core/models/remote.dart';
 import '../../core/models/sync_direction.dart';
 import '../../core/models/sync_filter.dart';
 import '../../core/models/sync_task.dart';
+import '../picker/file_picker_page.dart';
 import 'filter_edit_page.dart';
 
 /// 任务编辑器 —— 对应原生 `Activities/TaskActivity.kt`。
@@ -40,21 +40,20 @@ class _TaskEditPageState extends State<TaskEditPage> {
   int? _filterId;
   String? _error;
 
-  /// 调用系统文件选择器挑一个本地目录，替代手工输入路径。
+  /// 应用内目录选择器挑一个本地目录，替代手工输入路径。
   Future<void> _pickLocalDirectory() async {
-    final AppLocalizations l10n = AppLocalizations.of(context);
-    try {
-      final String? path = await FilePicker.platform.getDirectoryPath(
-        dialogTitle: l10n.taskEditLocalPath,
-      );
-      if (path == null || path.isEmpty) return;
-      setState(() => _localPath.text = path);
-    } on Object catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.taskEditBrowse}: $error')),
-      );
-    }
+    final String current = _localPath.text.trim();
+    final String? path = await Navigator.of(context).push<String>(
+      MaterialPageRoute<String>(
+        builder: (BuildContext context) => LocalFilePickerPage(
+          mode: LocalPickMode.directory,
+          initialPath: current.isEmpty ? null : current,
+        ),
+      ),
+    );
+    if (path == null || path.isEmpty) return;
+    if (!mounted) return;
+    setState(() => _localPath.text = path);
   }
 
 

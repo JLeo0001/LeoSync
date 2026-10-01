@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:path/path.dart' as p;
@@ -17,6 +16,7 @@ import '../../core/engine/engine_client.dart';
 import '../../core/engine/transfer_progress.dart';
 import '../../core/services/preference_service.dart';
 import '../../widgets/file_thumbnail.dart';
+import '../picker/file_picker_page.dart';
 import 'destination_picker_page.dart';
 
 /// 文件浏览页 —— 对应原生 `Fragments/FileExplorerFragment`。
@@ -162,11 +162,12 @@ class _ExplorerPageState extends State<ExplorerPage> {
 
   Future<void> _upload() async {
     final AppLocalizations l10n = AppLocalizations.of(context);
-    final FilePickerResult? picked = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
+    final List<String>? paths = await Navigator.of(context).push<List<String>>(
+      MaterialPageRoute<List<String>>(
+        builder: (BuildContext context) =>
+            const LocalFilePickerPage(mode: LocalPickMode.multiFile),
+      ),
     );
-    final List<String>? paths =
-        picked?.paths.whereType<String>().toList(growable: false);
     if (paths == null || paths.isEmpty) return;
 
     final List<_TransferJob> jobs = paths

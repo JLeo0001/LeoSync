@@ -24,7 +24,6 @@ dependencies:
   url_launcher: ^6.3.1
   package_info_plus: ^8.1.2
   dynamic_color: 1.7.0
-  file_picker: ^8.1.7
 
   # 后台调度（对应原生 workmanager/ 模块）
   workmanager: ^0.6.0
