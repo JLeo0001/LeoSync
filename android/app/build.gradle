@@ -224,7 +224,8 @@ dependencies {
     def shizukuVersion = '13.1.5'
     implementation "dev.rikka.shizuku:api:$shizukuVersion"
     implementation "dev.rikka.shizuku:provider:$shizukuVersion"
-    implementation 'io.github.iamr0s:Dhizuku-API:2.6.0'
+    // Dhizuku-API 2.6.0 起要求 compileSdk 37；2.5.4 的 API 一致且无此要求
+    implementation 'io.github.iamr0s:Dhizuku-API:2.5.4'
 
     // Java 8+ library support
     // TODO: replace with coreLibraryDesugar once available
