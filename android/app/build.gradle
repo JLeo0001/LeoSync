@@ -49,6 +49,8 @@ android {
 
     buildFeatures {
         viewBinding true
+        // Shizuku UserService 的 IPrivilegedService.aidl 需要；AGP 8 起默认关闭
+        aidl true
     }
 
     buildTypes {

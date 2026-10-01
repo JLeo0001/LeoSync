@@ -23,7 +23,6 @@ import com.rosan.dhizuku.api.DhizukuRequestPermissionListener
 import io.flutter.plugin.common.MethodChannel
 import org.json.JSONObject
 import rikka.shizuku.Shizuku
-import rikka.shizuku.ShizukuUserServiceArgs
 import rikka.sui.Sui
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
@@ -292,7 +291,7 @@ object Privileged {
         shizukuService?.let(onReady)
         if (!shizukuConnecting.compareAndSet(false, true)) return
         try {
-            val args = ShizukuUserServiceArgs(
+            val args = Shizuku.UserServiceArgs(
                 ComponentName(activity, PrivilegedService::class.java),
             )
                 .version(USER_SERVICE_VERSION)
