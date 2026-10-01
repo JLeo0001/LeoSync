@@ -57,6 +57,14 @@ class PreferenceService {
   static const String keyVcpDeclareLocal = 'vcp_declare_local';
   static const String keyVcpGrantAll = 'vcp_grant_all';
   static const String keyRefreshLocalAliases = 'refresh_local_aliases';
+  static const String keyStartupPermissionsAsked = 'permissions_requested_v1';
+
+  /// 首次运行时是否已经主动申请过一轮权限。
+  bool get startupPermissionsAsked =>
+      _prefs.getBool(keyStartupPermissionsAsked) ?? false;
+
+  Future<void> setStartupPermissionsAsked(bool value) =>
+      _prefs.setBool(keyStartupPermissionsAsked, value);
 
   // ── 日志 ────────────────────────────────────────────────────────────
   bool get loggingEnabled => _prefs.getBool(keyLogs) ?? false;

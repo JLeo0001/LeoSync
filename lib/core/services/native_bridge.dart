@@ -17,8 +17,15 @@ class NativeBridge {
   static final StreamController<List<String>> _shareController =
       StreamController<List<String>>.broadcast();
 
+  /// 特权事件流（Shizuku/Dhizuku 授权结果、运行时权限结果等）。
+  static final StreamController<Map<String, Object?>> _privEventController =
+      StreamController<Map<String, Object?>>.broadcast();
+
   /// 系统分享进来的文件路径流（每次分享推送一次）。
   static Stream<List<String>> get sharedFiles => _shareController.stream;
+
+  /// 特权事件流，元素为 `{type: ..., data: {...}}`。
+  static Stream<Map<String, Object?>> get privEvents => _privEventController.stream;
 
   static bool _listening = false;
 
@@ -27,11 +34,19 @@ class NativeBridge {
     if (!Platform.isAndroid || _listening) return;
     _listening = true;
     _channel.setMethodCallHandler((MethodCall call) async {
-      if (call.method == 'onShared') {
-        final List<String>? paths = _stringList(call.arguments);
-        if (paths != null && paths.isNotEmpty && !_shareController.isClosed) {
-          _shareController.add(paths);
-        }
+      switch (call.method) {
+        case 'onShared':
+          final List<String>? paths = _stringList(call.arguments);
+          if (paths != null && paths.isNotEmpty && !_shareController.isClosed) {
+            _shareController.add(paths);
+          }
+        case 'onPrivEvent':
+          final Object? args = call.arguments;
+          if (args is Map && !_privEventController.isClosed) {
+            _privEventController.add(
+              args.map((key, value) => MapEntry('$key', value)),
+            );
+          }
       }
       return null;
     });

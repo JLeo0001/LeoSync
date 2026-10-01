@@ -15,6 +15,7 @@ import 'core/engine/engine_paths.dart';
 import 'core/services/app_database.dart';
 import 'core/services/app_log.dart';
 import 'core/services/native_bridge.dart';
+import 'core/services/permission_service.dart';
 import 'core/services/preference_service.dart';
 import 'core/services/sync_notifier.dart';
 import 'core/services/third_party_licenses.dart';
@@ -92,6 +93,9 @@ Future<void> main() async {
 
   // 10. 应用更新提醒（仅在设置里开启「应用更新通知」时检查）
   unawaited(_maybeNotifyUpdate());
+
+  // 11. 主动申请运行所需的全部权限（通知、存储、所有文件、电池优化）
+  unawaited(PermissionService.ensureStartup());
 
   // 10. 处理冷启动时的系统分享
   final List<String>? initialShare = await NativeBridge.takeInitialShare();

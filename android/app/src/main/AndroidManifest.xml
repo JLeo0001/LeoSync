@@ -23,6 +23,19 @@
 
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+
+    <!-- 让 PackageManager 能看见 Shizuku / Dhizuku（Android 11+ 包可见性） -->
+    <queries>
+        <package android:name="moe.shizuku.privileged.api" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" android:host="shizuku.rikka.app" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -133,6 +146,15 @@
 
         <receiver android:name=".BroadcastReceivers.ServeCancelAction" />
         <receiver android:name=".Services.RcdService$RcdServiceAction" />
+
+        <!-- Shizuku 客户端 Provider：应用 ↔ Shizuku 管理器握手用 -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:multiprocess="false"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="moe.shizuku.manager.permission.API_V23" />
         <receiver
             android:name=".BroadcastReceivers.BootReciever"
             android:exported="true">

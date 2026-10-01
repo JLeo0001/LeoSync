@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +39,24 @@ class _TaskEditPageState extends State<TaskEditPage> {
   String? _remoteId;
   int? _filterId;
   String? _error;
+
+  /// 调用系统文件选择器挑一个本地目录，替代手工输入路径。
+  Future<void> _pickLocalDirectory() async {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    try {
+      final String? path = await FilePicker.platform.getDirectoryPath(
+        dialogTitle: l10n.taskEditLocalPath,
+      );
+      if (path == null || path.isEmpty) return;
+      setState(() => _localPath.text = path);
+    } on Object catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l10n.taskEditBrowse}: $error')),
+      );
+    }
+  }
+
 
   @override
   void initState() {
@@ -176,6 +195,11 @@ class _TaskEditPageState extends State<TaskEditPage> {
               labelText: l10n.taskEditLocalPath,
               hintText: '/storage/emulated/0/Download/backup',
               border: OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.folder_open),
+                tooltip: l10n.taskEditBrowse,
+                onPressed: () => unawaited(_pickLocalDirectory()),
+              ),
             ),
           ),
           const SizedBox(height: 16),

@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/controllers/engine_controller.dart';
 import '../../core/controllers/settings_controller.dart';
+import '../../core/services/native_bridge.dart';
+import '../../core/services/permission_service.dart';
 import '../about/about_page.dart';
 import '../logs/log_page.dart';
 
@@ -230,6 +235,11 @@ class SettingsPage extends StatelessWidget {
             value: settings.notificationReports,
             onChanged: settings.setNotificationReports,
           ),
+
+          const Divider(),
+          // ── 权限 ────────────────────────────────────────────────────
+          _SectionHeader(l10n.settingsPermissions),
+          const _PermissionsSection(),
 
           const Divider(),
           // ── 文件访问 ────────────────────────────────────────────────
@@ -517,6 +527,206 @@ class _SectionHeader extends StatelessWidget {
             .labelLarge
             ?.copyWith(color: scheme.primary),
       ),
+    );
+  }
+}
+
+/// 权限区块 —— 通知 / 所有文件访问 / 电池优化，外加 Shizuku、Dhizuku 状态。
+///
+/// 有任一代授通道可用时，「所有文件访问」可以直接一键授予（appops），
+/// 不用再跳系统设置页；代授结果经 `onPrivEvent` 事件流回推并自动刷新。
+class _PermissionsSection extends StatefulWidget {
+  const _PermissionsSection();
+
+  @override
+  State<_PermissionsSection> createState() => _PermissionsSectionState();
+}
+
+class _PermissionsSectionState extends State<_PermissionsSection> {
+  PrivilegedStatus? _status;
+  bool _busy = false;
+  StreamSubscription<Map<String, Object?>>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_refresh());
+    _subscription = NativeBridge.privEvents.listen(
+      (_) => unawaited(_refresh()),
+    );
+  }
+
+  @override
+  void dispose() {
+    unawaited(_subscription?.cancel());
+    super.dispose();
+  }
+
+  Future<void> _refresh() async {
+    final PrivilegedStatus? status = await PermissionService.status();
+    if (!mounted) return;
+    setState(() => _status = status);
+  }
+
+  Future<void> _guard(Future<void> Function() action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await action();
+    } finally {
+      if (mounted) setState(() => _busy = false);
+      await _refresh();
+    }
+  }
+
+  void _toast(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _grantAllFiles() async {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final PrivilegedStatus? status = _status;
+    if (status == null) return;
+    final String source = status.shizukuReady
+        ? 'shizuku'
+        : status.dhizukuReady
+            ? 'dhizuku'
+            : '';
+    if (source.isEmpty) {
+      await PermissionService.openAllFilesSettings();
+      return;
+    }
+    final bool ok =
+        await PermissionService.grantAllViaPrivileged(source, status);
+    _toast(ok ? l10n.permGrantDone : l10n.permGrantFailed);
+  }
+
+  Future<void> _openShizukuDownload() async {
+    final Uri uri = Uri.parse('https://shizuku.rikka.app/download/');
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } on Object {
+      _toast('$uri');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context);
+    final PrivilegedStatus? status = _status;
+
+    if (status == null) {
+      return const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final String shizukuSubtitle = status.shizukuGranted
+        ? l10n.permGranted
+        : status.shizukuBinder
+            ? l10n.permNotGranted
+            : l10n.permNotRunning;
+    final String dhizukuSubtitle = status.dhizukuGranted
+        ? l10n.permGranted
+        : status.dhizukuAvailable
+            ? l10n.permNotGranted
+            : l10n.permNotInstalled;
+
+    return Column(
+      children: <Widget>[
+        SwitchListTile(
+          secondary: const Icon(Icons.notifications_outlined),
+          title: Text(l10n.permNotifications),
+          value: status.notifGranted,
+          onChanged: (_) => unawaited(
+            _guard(PermissionService.requestRuntimePermissions),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.folder_special_outlined),
+          title: Text(l10n.permAllFiles),
+          isThreeLine: true,
+          subtitle: Text(
+            '${l10n.permAllFilesHint}\n'
+            '${status.allFilesGranted ? l10n.permGranted : l10n.permNotGranted}',
+          ),
+          trailing: _busy
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.chevron_right),
+          onTap: _busy ? null : () => unawaited(_guard(_grantAllFiles)),
+        ),
+        ListTile(
+          leading: const Icon(Icons.battery_saver_outlined),
+          title: Text(l10n.permBattery),
+          isThreeLine: true,
+          subtitle: Text(
+            '${l10n.permBatteryHint}\n'
+            '${status.batteryExempt ? l10n.permGranted : l10n.permNotGranted}',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => unawaited(
+            _guard(PermissionService.requestBatteryExemption),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.terminal),
+          title: Text(l10n.permShizuku),
+          subtitle: Text(l10n.permShizukuHint),
+          trailing: Text(
+            shizukuSubtitle,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          onTap: () => unawaited(_guard(() async {
+            if (status.shizukuGranted) return;
+            if (!status.shizukuBinder) {
+              await _openShizukuDownload();
+              return;
+            }
+            final bool fired = await PermissionService.requestShizukuPermission();
+            if (!fired) _toast(l10n.permGrantFailed);
+          })),
+        ),
+        ListTile(
+          leading: const Icon(Icons.admin_panel_settings_outlined),
+          title: Text(l10n.permDhizuku),
+          subtitle: Text(l10n.permDhizukuHint),
+          trailing: Text(
+            dhizukuSubtitle,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          onTap: () => unawaited(_guard(() async {
+            if (status.dhizukuGranted || !status.dhizukuAvailable) return;
+            final bool fired =
+                await PermissionService.requestDhizukuPermission();
+            if (!fired) _toast(l10n.permGrantFailed);
+          })),
+        ),
+        if (status.shizukuReady || status.dhizukuReady)
+          ListTile(
+            leading: const Icon(Icons.bolt),
+            title: Text(l10n.permOneKeyGrant),
+            subtitle: Text(
+              '${l10n.permShizuku} / ${l10n.permDhizuku}: '
+              '${status.shizukuReady ? l10n.permShizuku : l10n.permDhizuku}',
+            ),
+            trailing: _busy
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.chevron_right),
+            onTap: _busy ? null : () => unawaited(_guard(_grantAllFiles)),
+          ),
+      ],
     );
   }
 }

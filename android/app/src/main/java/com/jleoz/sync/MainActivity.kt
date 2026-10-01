@@ -35,11 +35,44 @@ class MainActivity : FlutterActivity() {
         val methodChannel =
             MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
         channel = methodChannel
+        Privileged.attach(this, methodChannel)
 
         methodChannel.setMethodCallHandler { call, result ->
             when (call.method) {
                 // Dart 侧的 EnginePaths 优先用这个，比解析 resolvedExecutable 更稳。
                 "nativeLibraryDir" -> result.success(applicationInfo.nativeLibraryDir)
+
+                // ── 高级权限（Shizuku / Dhizuku / 运行时权限） ──
+                "privStatus" -> result.success(Privileged.status(this))
+                "shizukuRequestPermission" ->
+                    result.success(Privileged.shizukuRequestPermission())
+                "dhizukuRequestPermission" ->
+                    result.success(Privileged.dhizukuRequestPermission(this))
+                "hasAllFiles" -> result.success(Privileged.hasAllFiles(this))
+                "openAllFilesSettings" ->
+                    result.success(Privileged.openAllFilesSettings(this))
+                "requestRuntimePerms" -> {
+                    Privileged.requestRuntimePermissions(this)
+                    result.success(true)
+                }
+                "isIgnoringBattery" -> result.success(Privileged.batteryExempt(this))
+                "requestBatteryExemption" ->
+                    result.success(Privileged.requestBatteryExemption(this))
+                "privExec" -> {
+                    @Suppress("UNCHECKED_CAST")
+                    val args = call.arguments as? Map<String, Any?>
+                    val source = args?.get("source") as? String ?: "shizuku"
+                    val cmd = (args?.get("cmd") as? List<*>)
+                        ?.filterIsInstance<String>()
+                        ?: emptyList()
+                    if (cmd.isEmpty()) {
+                        result.success(
+                            mapOf("exit" to -1, "out" to "", "err" to "empty command"),
+                        )
+                    } else {
+                        Privileged.exec(this, source, cmd, result)
+                    }
+                }
 
                 // OAuth 授权期间给引擎子进程保活：应用切到浏览器后进入缓存态，
                 // Android 12+ 会杀掉 app exec 出来的子进程，导致回调服务器
@@ -89,6 +122,20 @@ class MainActivity : FlutterActivity() {
         if (!paths.isNullOrEmpty()) {
             channel?.invokeMethod("onShared", paths)
         }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Privileged.onRuntimeResult(requestCode, permissions, grantResults)
+    }
+
+    override fun onDestroy() {
+        Privileged.detach()
+        super.onDestroy()
     }
 
     /**
