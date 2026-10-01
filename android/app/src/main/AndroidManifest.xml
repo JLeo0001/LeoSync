@@ -37,6 +37,10 @@
         </intent>
     </queries>
 
+    <!-- Shizuku 官方声明支持 Android 6.0+（API 23），但其库清单写的是 24；
+         我们自己只在用户主动使用 Shizuku 功能时才调它的 API，覆盖掉即可。 -->
+    <uses-sdk tools:overrideLibrary="rikka.shizuku.api" />
+
     <application
         android:allowBackup="true"
         android:icon="${appIcon}"
